@@ -79,7 +79,7 @@ impl From<SqlxError> for Error {
 impl From<UserError> for Error {
     fn from(error: UserError) -> Self {
         match error {
-            UserError::PasswordUnMatch => {
+            UserError::NameAndPasswordUnMatch => {
                 Error::Unauthorized(json!({"error": "Name and password do not match"}))
             }
             UserError::RefreshTokenUnMatch => {

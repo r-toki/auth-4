@@ -20,8 +20,8 @@ lazy_static! {
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("User::Error::PasswordUnMatch")]
-    PasswordUnMatch,
+    #[error("User::Error::NameAndPasswordUnMatch")]
+    NameAndPasswordUnMatch,
 
     #[error("User::Error::RefreshTokenUnMatch")]
     RefreshTokenUnMatch,
@@ -74,7 +74,7 @@ impl User {
 
     pub fn verify_password(&self, password: String) -> Result<(), errors::Error> {
         verify(&password, &self.password_hash)
-            .map_err(|_| Error::PasswordUnMatch)
+            .map_err(|_| Error::NameAndPasswordUnMatch)
             .map_err(Into::into)
     }
 
@@ -89,10 +89,7 @@ impl User {
             .map_err(Into::into)
     }
 
-    pub async fn find_by_id(
-        executor: impl MySqlExecutor<'_>,
-        id: String,
-    ) -> Result<Option<User>, errors::Error> {
+    pub async fn find(executor: impl MySqlExecutor<'_>, id: String) -> Result<User, errors::Error> {
         query_as!(
             User,
             r#"
@@ -101,7 +98,7 @@ where id = ?
             "#,
             id
         )
-        .fetch_optional(executor)
+        .fetch_one(executor)
         .await
         .map_err(Into::into)
     }

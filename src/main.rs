@@ -1,3 +1,4 @@
+mod controller;
 mod lib;
 mod model;
 
@@ -19,7 +20,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(pool.clone()))
             .wrap(Logger::default())
             .wrap(cors())
-            // .configure(controller::init)
+            .configure(controller::init)
             .service(index)
     })
     .bind(format!("{}:{}", CONFIG.host, CONFIG.port))?
