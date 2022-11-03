@@ -1,7 +1,7 @@
 use super::lib::jwt_extractor::AccessTokenDecoded;
 use crate::controller::lib::jwt_extractor::{BearerToken, RefreshTokenDecoded};
 use crate::lib::{
-    errors,
+    errors::MyResult,
     jwt::{Auth, Tokens},
 };
 use crate::model::user::{Error as UserError, User};
@@ -34,7 +34,7 @@ struct Create {
 }
 
 #[post("/user")]
-async fn create(pool: Data<MySqlPool>, form: Json<Create>) -> Result<Json<Tokens>, errors::Error> {
+async fn create(pool: Data<MySqlPool>, form: Json<Create>) -> MyResult<Json<Tokens>> {
     let mut user = User::create(form.name.clone(), form.password.clone())?;
     let tokens = user.issue_tokens();
     user.store(&**pool).await?;
@@ -45,7 +45,7 @@ async fn create(pool: Data<MySqlPool>, form: Json<Create>) -> Result<Json<Tokens
 async fn destroy(
     pool: Data<MySqlPool>,
     access_token_decoded: AccessTokenDecoded,
-) -> Result<Json<()>, errors::Error> {
+) -> MyResult<Json<()>> {
     let auth = access_token_decoded.into_auth();
     User::delete_by_id(&**pool, auth.uid).await?;
     Ok(Json(()))
@@ -61,7 +61,7 @@ struct CreateSessions {
 async fn create_sessions(
     pool: Data<MySqlPool>,
     form: Json<CreateSessions>,
-) -> Result<Json<Tokens>, errors::Error> {
+) -> MyResult<Json<Tokens>> {
     let mut user = User::find_by_name(&**pool, form.name.clone())
         .await?
         .ok_or_else(|| UserError::NameAndPasswordUnMatch)?;
@@ -76,7 +76,7 @@ async fn update_sessions(
     pool: Data<MySqlPool>,
     token: BearerToken,
     refresh_token_decoded: RefreshTokenDecoded,
-) -> Result<Json<Tokens>, errors::Error> {
+) -> MyResult<Json<Tokens>> {
     let auth = refresh_token_decoded.into_auth();
     let mut user = User::find(&**pool, auth.uid).await?;
     user.verify_refresh_token(token.into())?;
@@ -89,7 +89,7 @@ async fn update_sessions(
 async fn destroy_sessions(
     pool: Data<MySqlPool>,
     access_token_decoded: AccessTokenDecoded,
-) -> Result<Json<()>, errors::Error> {
+) -> MyResult<Json<()>> {
     let auth = access_token_decoded.into_auth();
     let mut user = User::find(&**pool, auth.uid).await?;
     user.revoke_tokens();

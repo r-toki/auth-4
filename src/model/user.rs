@@ -1,6 +1,6 @@
 use super::lib::{get_current_date_time, get_new_id};
 use crate::lib::{
-    errors,
+    errors::MyError,
     jwt::{generate_tokens, Auth, Tokens},
     password_hashing::{hash, verify},
 };
@@ -42,9 +42,9 @@ pub struct User {
 }
 
 impl User {
-    pub fn create(name: String, password: String) -> Result<Self, errors::Error> {
+    pub fn create(name: String, password: String) -> Result<Self, MyError> {
         if !RE_PASSWORD.is_match(&password) {
-            return Err(errors::Error::UnprocessableEntity(
+            return Err(MyError::UnprocessableEntity(
                 json!({"errors": {"password": ["must be 8-30 characters in alphabet, numbers or symbols"]}}),
             ));
         };
@@ -72,13 +72,13 @@ impl User {
         self.updated_at = get_current_date_time();
     }
 
-    pub fn verify_password(&self, password: String) -> Result<(), errors::Error> {
+    pub fn verify_password(&self, password: String) -> Result<(), MyError> {
         verify(&password, &self.password_hash)
             .map_err(|_| Error::NameAndPasswordUnMatch)
             .map_err(Into::into)
     }
 
-    pub fn verify_refresh_token(&self, refresh_token: String) -> Result<(), errors::Error> {
+    pub fn verify_refresh_token(&self, refresh_token: String) -> Result<(), MyError> {
         let refresh_token_hash = self
             .refresh_token_hash
             .as_ref()
@@ -89,7 +89,7 @@ impl User {
             .map_err(Into::into)
     }
 
-    pub async fn find(executor: impl MySqlExecutor<'_>, id: String) -> Result<User, errors::Error> {
+    pub async fn find(executor: impl MySqlExecutor<'_>, id: String) -> Result<User, MyError> {
         query_as!(
             User,
             r#"
@@ -106,7 +106,7 @@ where id = ?
     pub async fn find_by_name(
         executor: impl MySqlExecutor<'_>,
         name: String,
-    ) -> Result<Option<User>, errors::Error> {
+    ) -> Result<Option<User>, MyError> {
         query_as!(
             User,
             r#"
@@ -120,7 +120,7 @@ where name = ?
         .map_err(Into::into)
     }
 
-    pub async fn store(&self, executor: impl MySqlExecutor<'_>) -> Result<(), errors::Error> {
+    pub async fn store(&self, executor: impl MySqlExecutor<'_>) -> Result<(), MyError> {
         query!(
             r#"
 insert into users (id, name, password_hash, refresh_token_hash, created_at, updated_at)
@@ -144,7 +144,7 @@ created_at = values(created_at), updated_at = values(updated_at)
         .map_err(Into::into)
     }
 
-    pub async fn delete(&self, executor: impl MySqlExecutor<'_>) -> Result<(), errors::Error> {
+    pub async fn delete(&self, executor: impl MySqlExecutor<'_>) -> Result<(), MyError> {
         query!(
             r#"
 delete from users

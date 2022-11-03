@@ -1,4 +1,4 @@
-use crate::lib::errors::Error;
+use crate::lib::errors::MyError;
 use crate::lib::jwt::{decode_access_token, decode_refresh_token, Auth, Claims};
 
 use actix_web::{error::ErrorUnauthorized, http::header, FromRequest};
@@ -49,7 +49,7 @@ impl AccessTokenDecoded {
 }
 
 impl FromRequest for AccessTokenDecoded {
-    type Error = Error;
+    type Error = MyError;
     type Future = Pin<Box<dyn Future<Output = Result<Self, Self::Error>>>>;
 
     fn from_request(req: &actix_web::HttpRequest, _: &mut actix_web::dev::Payload) -> Self::Future {
@@ -78,7 +78,7 @@ impl RefreshTokenDecoded {
 }
 
 impl FromRequest for RefreshTokenDecoded {
-    type Error = Error;
+    type Error = MyError;
     type Future = Pin<Box<dyn Future<Output = Result<Self, Self::Error>>>>;
 
     fn from_request(req: &actix_web::HttpRequest, _: &mut actix_web::dev::Payload) -> Self::Future {
