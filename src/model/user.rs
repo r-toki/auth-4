@@ -144,19 +144,19 @@ created_at = values(created_at), updated_at = values(updated_at)
         .map_err(Into::into)
     }
 
-    pub async fn delete(&self, executor: impl MySqlExecutor<'_>) -> Result<(), MyError> {
-        query!(
-            r#"
-delete from users
-where id = ?
-            "#,
-            self.id
-        )
-        .execute(executor)
-        .await
-        .map(|_| ())
-        .map_err(Into::into)
-    }
+    //     pub async fn delete(&self, executor: impl MySqlExecutor<'_>) -> Result<(), MyError> {
+    //         query!(
+    //             r#"
+    // delete from users
+    // where id = ?
+    //             "#,
+    //             self.id
+    //         )
+    //         .execute(executor)
+    //         .await
+    //         .map(|_| ())
+    //         .map_err(Into::into)
+    //     }
 
     pub async fn delete_by_id(
         executor: impl MySqlExecutor<'_>,

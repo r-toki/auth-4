@@ -17,9 +17,9 @@ pub fn init(cfg: &mut ServiceConfig) {
     cfg.service(index);
     cfg.service(create);
     cfg.service(destroy);
-    cfg.service(create_sessions);
-    cfg.service(update_sessions);
-    cfg.service(destroy_sessions);
+    cfg.service(create_session);
+    cfg.service(update_session);
+    cfg.service(destroy_session);
 }
 
 #[get("/user")]
@@ -57,8 +57,8 @@ struct CreateSessions {
     password: String,
 }
 
-#[post("/user/sessions")]
-async fn create_sessions(
+#[post("/user/session")]
+async fn create_session(
     pool: Data<MySqlPool>,
     form: Json<CreateSessions>,
 ) -> MyResult<Json<Tokens>> {
@@ -71,8 +71,8 @@ async fn create_sessions(
     Ok(Json(tokens))
 }
 
-#[patch("/user/sessions")]
-async fn update_sessions(
+#[patch("/user/session")]
+async fn update_session(
     pool: Data<MySqlPool>,
     token: BearerToken,
     refresh_token_decoded: RefreshTokenDecoded,
@@ -85,8 +85,8 @@ async fn update_sessions(
     Ok(Json(tokens))
 }
 
-#[delete("/user/sessions")]
-async fn destroy_sessions(
+#[delete("/user/session")]
+async fn destroy_session(
     pool: Data<MySqlPool>,
     access_token_decoded: AccessTokenDecoded,
 ) -> MyResult<Json<()>> {

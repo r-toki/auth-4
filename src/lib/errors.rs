@@ -15,8 +15,8 @@ pub enum MyError {
     Unauthorized(JsonValue),
 
     // 403
-    #[error("Forbidden: {0}")]
-    Forbidden(JsonValue),
+    // #[error("Forbidden: {0}")]
+    // Forbidden(JsonValue),
 
     // 404
     #[error("Not Found: {0}")]
@@ -35,7 +35,7 @@ impl ResponseError for MyError {
     fn error_response(&self) -> HttpResponse {
         match self {
             MyError::Unauthorized(message) => HttpResponse::Unauthorized().json(message),
-            MyError::Forbidden(message) => HttpResponse::Forbidden().json(message),
+            // MyError::Forbidden(message) => HttpResponse::Forbidden().json(message),
             MyError::NotFound(message) => HttpResponse::NotFound().json(message),
             MyError::UnprocessableEntity(message) => {
                 HttpResponse::UnprocessableEntity().json(message)
