@@ -1,15 +1,19 @@
-use crate::lib::config::CONFIG;
-
 use actix_cors::Cors;
 use actix_web::http;
+use lazy_static::lazy_static;
+
+lazy_static! {
+    static ref ALLOWED_ORIGINS: Vec<String> = std::env::vars()
+        .into_iter()
+        .filter(|v| v.0.starts_with("ALLOWED_ORIGIN_"))
+        .map(|v| v.1)
+        .collect();
+}
 
 pub fn cors() -> Cors {
     Cors::default()
         .allowed_origin_fn(|origin, _req_head| {
-            CONFIG.allowed_domain_suffix.as_bytes() == b"127.0.0.1"
-                || origin
-                    .as_bytes()
-                    .ends_with(CONFIG.allowed_domain_suffix.as_bytes())
+            ALLOWED_ORIGINS.contains(&origin.to_str().unwrap().into())
         })
         .allowed_methods(vec!["GET", "POST", "PATCH", "DELETE"])
         .allowed_headers(vec![
