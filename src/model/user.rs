@@ -108,6 +108,20 @@ where name = ?
         .map_err(Into::into)
     }
 
+    pub async fn delete_by_id(executor: impl MySqlExecutor<'_>, id: String) -> MyResult<()> {
+        query!(
+            r#"
+delete from users
+where id = ?
+            "#,
+            id
+        )
+        .execute(executor)
+        .await
+        .map(|_| ())
+        .map_err(Into::into)
+    }
+
     pub async fn store(&self, executor: impl MySqlExecutor<'_>) -> MyResult<()> {
         query!(
             r#"
@@ -139,20 +153,6 @@ delete from users
 where id = ?
             "#,
             self.id
-        )
-        .execute(executor)
-        .await
-        .map(|_| ())
-        .map_err(Into::into)
-    }
-
-    pub async fn delete_by_id(executor: impl MySqlExecutor<'_>, id: String) -> MyResult<()> {
-        query!(
-            r#"
-delete from users
-where id = ?
-            "#,
-            id
         )
         .execute(executor)
         .await
