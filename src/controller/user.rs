@@ -1,10 +1,11 @@
 use super::lib::jwt_extractor::AccessTokenDecoded;
 use crate::controller::lib::jwt_extractor::{BearerToken, RefreshTokenDecoded};
+use crate::lib::my_error::MyError;
 use crate::lib::{
-    errors::MyResult,
     jwt::{Auth, Tokens},
+    my_error::MyResult,
 };
-use crate::model::user::{Error as UserError, User};
+use crate::model::user::User;
 
 use actix_web::{
     delete, get, patch, post,
@@ -64,7 +65,7 @@ async fn create_session(
 ) -> MyResult<Json<Tokens>> {
     let mut user = User::find_by_name(&**pool, form.name.clone())
         .await?
-        .ok_or_else(|| UserError::NameAndPasswordUnMatch)?;
+        .ok_or_else(|| MyError::new_unauthorized())?;
     user.verify_password(form.password.clone())?;
     let tokens = user.issue_tokens();
     user.store(&**pool).await?;

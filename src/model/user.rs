@@ -1,7 +1,7 @@
 use super::lib::{get_current_date_time, get_new_id};
 use crate::lib::{
-    errors::MyError,
     jwt::{generate_tokens, Auth, Tokens},
+    my_error::{error_json, MyError, MyResult},
     password_hashing::{hash, verify},
 };
 
@@ -10,21 +10,12 @@ use derive_new::new;
 use lazy_static::lazy_static;
 use regex::Regex;
 use serde_json::json;
-use sqlx::{error, query, query_as, MySqlExecutor};
+use sqlx::{query, query_as, MySqlExecutor};
 use validator::Validate;
 
 lazy_static! {
     static ref RE_NAME: Regex = Regex::new(r"[A-Za-z\d#$@!%&*?]{3,15}").unwrap();
     static ref RE_PASSWORD: Regex = Regex::new(r"[A-Za-z\d#$@!%&*?]{8,30}").unwrap();
-}
-
-#[derive(Debug, thiserror::Error)]
-pub enum Error {
-    #[error("User::Error::NameAndPasswordUnMatch")]
-    NameAndPasswordUnMatch,
-
-    #[error("User::Error::RefreshTokenUnMatch")]
-    RefreshTokenUnMatch,
 }
 
 #[derive(new, Debug, Validate)]
@@ -42,10 +33,10 @@ pub struct User {
 }
 
 impl User {
-    pub fn create(name: String, password: String) -> Result<Self, MyError> {
+    pub fn create(name: String, password: String) -> MyResult<Self> {
         if !RE_PASSWORD.is_match(&password) {
             return Err(MyError::UnprocessableEntity(
-                json!({"errors": {"password": ["must be 8-30 characters in alphabet, numbers or symbols"]}}),
+                json!({"password": ["must be 8-30 characters in alphabet, numbers or symbols"]}),
             ));
         };
 
@@ -72,24 +63,21 @@ impl User {
         self.updated_at = get_current_date_time();
     }
 
-    pub fn verify_password(&self, password: String) -> Result<(), MyError> {
+    pub fn verify_password(&self, password: String) -> MyResult<()> {
         verify(&password, &self.password_hash)
-            .map_err(|_| Error::NameAndPasswordUnMatch)
+            .map_err(|_| MyError::Unauthorized(error_json("Name and password do not match")))
             .map_err(Into::into)
     }
 
-    pub fn verify_refresh_token(&self, refresh_token: String) -> Result<(), MyError> {
-        let refresh_token_hash = self
-            .refresh_token_hash
-            .as_ref()
-            .ok_or_else(|| Error::RefreshTokenUnMatch)?;
-
+    pub fn verify_refresh_token(&self, refresh_token: String) -> MyResult<()> {
+        let err = || MyError::Unauthorized(error_json("Refresh token do not match"));
+        let refresh_token_hash = self.refresh_token_hash.as_ref().ok_or_else(|| err())?;
         verify(&refresh_token, refresh_token_hash)
-            .map_err(|_| Error::RefreshTokenUnMatch)
+            .map_err(|_| err())
             .map_err(Into::into)
     }
 
-    pub async fn find(executor: impl MySqlExecutor<'_>, id: String) -> Result<User, MyError> {
+    pub async fn find(executor: impl MySqlExecutor<'_>, id: String) -> MyResult<User> {
         query_as!(
             User,
             r#"
@@ -106,7 +94,7 @@ where id = ?
     pub async fn find_by_name(
         executor: impl MySqlExecutor<'_>,
         name: String,
-    ) -> Result<Option<User>, MyError> {
+    ) -> MyResult<Option<User>> {
         query_as!(
             User,
             r#"
@@ -120,7 +108,7 @@ where name = ?
         .map_err(Into::into)
     }
 
-    pub async fn store(&self, executor: impl MySqlExecutor<'_>) -> Result<(), MyError> {
+    pub async fn store(&self, executor: impl MySqlExecutor<'_>) -> MyResult<()> {
         query!(
             r#"
 insert into users (id, name, password_hash, refresh_token_hash, created_at, updated_at)
@@ -144,24 +132,21 @@ created_at = values(created_at), updated_at = values(updated_at)
         .map_err(Into::into)
     }
 
-    //     pub async fn delete(&self, executor: impl MySqlExecutor<'_>) -> Result<(), MyError> {
-    //         query!(
-    //             r#"
-    // delete from users
-    // where id = ?
-    //             "#,
-    //             self.id
-    //         )
-    //         .execute(executor)
-    //         .await
-    //         .map(|_| ())
-    //         .map_err(Into::into)
-    //     }
+    pub async fn delete(&self, executor: impl MySqlExecutor<'_>) -> MyResult<()> {
+        query!(
+            r#"
+delete from users
+where id = ?
+            "#,
+            self.id
+        )
+        .execute(executor)
+        .await
+        .map(|_| ())
+        .map_err(Into::into)
+    }
 
-    pub async fn delete_by_id(
-        executor: impl MySqlExecutor<'_>,
-        id: String,
-    ) -> Result<(), error::Error> {
+    pub async fn delete_by_id(executor: impl MySqlExecutor<'_>, id: String) -> MyResult<()> {
         query!(
             r#"
 delete from users

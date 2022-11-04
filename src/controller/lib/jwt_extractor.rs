@@ -1,7 +1,7 @@
-use crate::lib::errors::MyError;
 use crate::lib::jwt::{decode_access_token, decode_refresh_token, Auth, Claims};
+use crate::lib::my_error::MyError;
 
-use actix_web::{error::ErrorUnauthorized, http::header, FromRequest};
+use actix_web::{http::header, FromRequest};
 use jsonwebtoken::errors::{Error as JwtError, ErrorKind as JwtErrorKind};
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -21,7 +21,7 @@ impl From<BearerToken> for String {
 }
 
 impl FromRequest for BearerToken {
-    type Error = actix_web::Error;
+    type Error = MyError;
     type Future = Pin<Box<dyn Future<Output = Result<Self, Self::Error>>>>;
 
     fn from_request(req: &actix_web::HttpRequest, _: &mut actix_web::dev::Payload) -> Self::Future {
@@ -29,7 +29,7 @@ impl FromRequest for BearerToken {
         Box::pin(async move {
             extract_bearer_token(&req)
                 .map(BearerToken)
-                .map_err(ErrorUnauthorized)
+                .map_err(|_| MyError::new_unauthorized())
         })
     }
 }
@@ -58,7 +58,7 @@ impl FromRequest for AccessTokenDecoded {
             extract_bearer_token(&req)
                 .and_then(|token| decode_access_token(&token))
                 .map(AccessTokenDecoded)
-                .map_err(Into::into)
+                .map_err(|_| MyError::new_unauthorized())
         })
     }
 }
@@ -87,7 +87,7 @@ impl FromRequest for RefreshTokenDecoded {
             extract_bearer_token(&req)
                 .and_then(|token| decode_refresh_token(&token))
                 .map(RefreshTokenDecoded)
-                .map_err(Into::into)
+                .map_err(|_| MyError::new_unauthorized())
         })
     }
 }
