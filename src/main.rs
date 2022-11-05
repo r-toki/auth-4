@@ -5,12 +5,13 @@ mod model;
 use crate::lib::{config::CONFIG, cors::cors};
 
 use actix_web::{get, middleware::Logger, web, App, HttpServer, Responder};
-use dotenv::dotenv;
 use sqlx::MySqlPool;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    dotenv().ok();
+    if cfg!(debug_assertions) {
+        dotenv::from_filename(".env.development").ok();
+    }
 
     env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
 
