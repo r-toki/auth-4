@@ -1,9 +1,15 @@
+use crate::lib::config::CONFIG;
+
 use actix_cors::Cors;
 use actix_web::http;
 
 pub fn cors() -> Cors {
     Cors::default()
-        .allowed_origin_fn(|_origin, _req_head| cfg!(debug_assertions))
+        .allowed_origin_fn(|origin, _req_head| {
+            CONFIG
+                .frontend_origins
+                .contains(&origin.to_str().unwrap().into())
+        })
         .allowed_methods(vec!["GET", "POST", "PATCH", "DELETE"])
         .allowed_headers(vec![
             http::header::AUTHORIZATION,
