@@ -146,6 +146,7 @@ created_at = values(created_at), updated_at = values(updated_at)
         .map_err(Into::into)
     }
 
+    #[allow(dead_code)]
     pub async fn delete(&self, executor: impl MySqlExecutor<'_>) -> MyResult<()> {
         query!(
             r#"
