@@ -3,9 +3,9 @@ use actix_web::http;
 use lazy_static::lazy_static;
 
 lazy_static! {
-    static ref ALLOWED_ORIGINS: Vec<String> = std::env::vars()
+    static ref FRONTEND_ORIGINS: Vec<String> = std::env::vars()
         .into_iter()
-        .filter(|v| v.0.starts_with("ALLOWED_ORIGIN_"))
+        .filter(|v| v.0.starts_with("FRONTEND_ORIGIN_"))
         .map(|v| v.1)
         .collect();
 }
@@ -13,7 +13,7 @@ lazy_static! {
 pub fn cors() -> Cors {
     Cors::default()
         .allowed_origin_fn(|origin, _req_head| {
-            ALLOWED_ORIGINS.contains(&origin.to_str().unwrap().into())
+            FRONTEND_ORIGINS.contains(&origin.to_str().unwrap().into())
         })
         .allowed_methods(vec!["GET", "POST", "PATCH", "DELETE"])
         .allowed_headers(vec![

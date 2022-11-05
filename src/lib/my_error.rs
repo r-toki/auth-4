@@ -33,18 +33,18 @@ pub enum MyError {
 impl ResponseError for MyError {
     fn error_response(&self) -> Response {
         match self {
-            MyError::BadRequest(v) => Response::BadRequest().json(v),
-            MyError::Unauthorized(v) => Response::Unauthorized().json(v),
-            MyError::Forbidden(v) => Response::Forbidden().json(v),
-            MyError::NotFound(v) => Response::NotFound().json(v),
-            MyError::Conflict(v) => Response::Conflict().json(v),
-            MyError::UnprocessableEntity(v) => Response::UnprocessableEntity().json(v),
-            MyError::InternalServerError(v) => Response::InternalServerError().json(v),
+            MyError::BadRequest(v) => Response::BadRequest().json(nest_error(v)),
+            MyError::Unauthorized(v) => Response::Unauthorized().json(nest_error(v)),
+            MyError::Forbidden(v) => Response::Forbidden().json(nest_error(v)),
+            MyError::NotFound(v) => Response::NotFound().json(nest_error(v)),
+            MyError::Conflict(v) => Response::Conflict().json(nest_error(v)),
+            MyError::UnprocessableEntity(v) => Response::UnprocessableEntity().json(nest_error(v)),
+            MyError::InternalServerError(v) => Response::InternalServerError().json(nest_error(v)),
         }
     }
 }
 
-pub fn error_json(v: &str) -> JsonValue {
+fn nest_error(v: &JsonValue) -> JsonValue {
     json!({ "error": v })
 }
 

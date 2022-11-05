@@ -1,7 +1,7 @@
 use super::lib::{get_current_date_time, get_new_id};
 use crate::lib::{
     jwt::{generate_tokens, Auth, Tokens},
-    my_error::{error_json, MyError, MyResult},
+    my_error::{MyError, MyResult},
     password_hashing::{hash, verify},
 };
 
@@ -65,12 +65,12 @@ impl User {
 
     pub fn verify_password(&self, password: String) -> MyResult<()> {
         verify(&password, &self.password_hash)
-            .map_err(|_| MyError::Unauthorized(error_json("Name and password do not match")))
+            .map_err(|_| MyError::Unauthorized("Name and password do not match".into()))
             .map_err(Into::into)
     }
 
     pub fn verify_refresh_token(&self, refresh_token: String) -> MyResult<()> {
-        let err = || MyError::Unauthorized(error_json("Refresh token do not match"));
+        let err = || MyError::Unauthorized("Refresh token do not match".into());
         let refresh_token_hash = self.refresh_token_hash.as_ref().ok_or_else(|| err())?;
         verify(&refresh_token, refresh_token_hash)
             .map_err(|_| err())
