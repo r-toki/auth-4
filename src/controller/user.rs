@@ -12,7 +12,7 @@ use actix_web::{
     web::{Data, Json, ServiceConfig},
 };
 use serde::Deserialize;
-use sqlx::MySqlPool;
+use sqlx::PgPool;
 
 pub fn init(cfg: &mut ServiceConfig) {
     cfg.service(index);
@@ -35,7 +35,7 @@ struct Create {
 }
 
 #[post("/user")]
-async fn create(pool: Data<MySqlPool>, form: Json<Create>) -> MyResult<Json<Tokens>> {
+async fn create(pool: Data<PgPool>, form: Json<Create>) -> MyResult<Json<Tokens>> {
     let mut user = User::create(form.name.clone(), form.password.clone())?;
     let tokens = user.issue_tokens();
     user.store(&**pool).await?;
@@ -44,7 +44,7 @@ async fn create(pool: Data<MySqlPool>, form: Json<Create>) -> MyResult<Json<Toke
 
 #[delete("/user")]
 async fn destroy(
-    pool: Data<MySqlPool>,
+    pool: Data<PgPool>,
     access_token_decoded: AccessTokenDecoded,
 ) -> MyResult<Json<()>> {
     let auth = access_token_decoded.into_auth();
@@ -59,10 +59,7 @@ struct CreateSessions {
 }
 
 #[post("/user/session")]
-async fn create_session(
-    pool: Data<MySqlPool>,
-    form: Json<CreateSessions>,
-) -> MyResult<Json<Tokens>> {
+async fn create_session(pool: Data<PgPool>, form: Json<CreateSessions>) -> MyResult<Json<Tokens>> {
     let mut user = User::find_by_name(&**pool, form.name.clone())
         .await?
         .ok_or_else(|| MyError::new_unauthorized())?;
@@ -74,7 +71,7 @@ async fn create_session(
 
 #[patch("/user/session")]
 async fn update_session(
-    pool: Data<MySqlPool>,
+    pool: Data<PgPool>,
     token: BearerToken,
     refresh_token_decoded: RefreshTokenDecoded,
 ) -> MyResult<Json<Tokens>> {
@@ -88,7 +85,7 @@ async fn update_session(
 
 #[delete("/user/session")]
 async fn destroy_session(
-    pool: Data<MySqlPool>,
+    pool: Data<PgPool>,
     access_token_decoded: AccessTokenDecoded,
 ) -> MyResult<Json<()>> {
     let auth = access_token_decoded.into_auth();

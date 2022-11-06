@@ -10,7 +10,7 @@ use derive_new::new;
 use lazy_static::lazy_static;
 use regex::Regex;
 use serde_json::json;
-use sqlx::{query, query_as, MySqlExecutor, MySqlPool};
+use sqlx::{query, query_as, PgPool};
 use validator::Validate;
 
 lazy_static! {
@@ -77,12 +77,12 @@ impl User {
             .map_err(Into::into)
     }
 
-    pub async fn find(pool: &MySqlPool, id: String) -> MyResult<User> {
+    pub async fn find(pool: &PgPool, id: String) -> MyResult<User> {
         query_as!(
             User,
             r#"
 select * from users
-where id = ?
+where id = $1
             "#,
             id
         )
@@ -91,28 +91,25 @@ where id = ?
         .map_err(Into::into)
     }
 
-    pub async fn find_by_name(
-        executor: impl MySqlExecutor<'_>,
-        name: String,
-    ) -> MyResult<Option<User>> {
+    pub async fn find_by_name(pool: &PgPool, name: String) -> MyResult<Option<User>> {
         query_as!(
             User,
             r#"
 select * from users
-where name = ?
+where name = $1
             "#,
             name
         )
-        .fetch_optional(executor)
+        .fetch_optional(pool)
         .await
         .map_err(Into::into)
     }
 
-    pub async fn delete_by_id(pool: &MySqlPool, id: String) -> MyResult<()> {
+    pub async fn delete_by_id(pool: &PgPool, id: String) -> MyResult<()> {
         query!(
             r#"
 delete from users
-where id = ?
+where id = $1
             "#,
             id
         )
@@ -122,57 +119,25 @@ where id = ?
         .map_err(Into::into)
     }
 
-    pub async fn store(&self, pool: &MySqlPool) -> MyResult<()> {
-        let mut tx = pool.begin().await?;
-
-        let exists = query!(
+    pub async fn store(&self, pool: &PgPool) -> MyResult<()> {
+        query!(
             r#"
-select * from users
-where id = ?
-            "#,
-            self.id
-        )
-        .fetch_optional(&mut tx)
-        .await?;
-
-        match exists {
-            Some(_) => {
-                query!(
-                    r#"
-update users
-set name = ?, password_hash = ?, refresh_token_hash = ?, created_at = ?, updated_at = ?
-where id = ?
-                    "#,
-                    self.name,
-                    self.password_hash,
-                    self.refresh_token_hash,
-                    self.created_at,
-                    self.updated_at,
-                    self.id
-                )
-                .execute(&mut tx)
-                .await?;
-            }
-            None => {
-                query!(
-                    r#"
 insert into users (id, name, password_hash, refresh_token_hash, created_at, updated_at)
-values (?, ?, ?, ?, ?, ?)
-                    "#,
-                    self.id,
-                    self.name,
-                    self.password_hash,
-                    self.refresh_token_hash,
-                    self.created_at,
-                    self.updated_at
-                )
-                .execute(&mut tx)
-                .await?;
-            }
-        };
-
-        tx.commit().await?;
-
-        Ok(())
+values ($1, $2, $3, $4, $5, $6)
+on conflict (id)
+do update
+set name = $2, password_hash = $3, refresh_token_hash = $4, created_at = $5, updated_at = $6
+            "#,
+            self.id,
+            self.name,
+            self.password_hash,
+            self.refresh_token_hash,
+            self.created_at,
+            self.updated_at
+        )
+        .execute(pool)
+        .await
+        .map(|_| ())
+        .map_err(Into::into)
     }
 }

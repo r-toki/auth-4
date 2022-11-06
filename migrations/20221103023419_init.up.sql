@@ -1,8 +1,8 @@
 create table users (
-  id varchar(255) primary key,
-  name varchar(255) unique not null,
+  id text primary key,
+  name text unique not null,
   password_hash text not null,
   refresh_token_hash text,
-  created_at timestamp not null,
-  updated_at timestamp not null
+  created_at timestamptz not null,
+  updated_at timestamptz not null
 );

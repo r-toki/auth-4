@@ -1,89 +1,37 @@
 {
-  "db": "MySQL",
-  "2548d0626553fd2f45aa95f18c9a62d7a31993ad88148d90687d7f35f58c2fb3": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Right": 6
-      }
-    },
-    "query": "\ninsert into users (id, name, password_hash, refresh_token_hash, created_at, updated_at)\nvalues (?, ?, ?, ?, ?, ?)\n                    "
-  },
-  "36e2e7593540cb916d406b3fac83dece763cfb932572d39f8dfc86c3404199d6": {
+  "db": "PostgreSQL",
+  "05b3db7f2f9714f72b349f8bd3cd1a2b018a4652cbd698184e346e224920760e": {
     "describe": {
       "columns": [
         {
           "name": "id",
           "ordinal": 0,
-          "type_info": {
-            "char_set": 224,
-            "flags": {
-              "bits": 4099
-            },
-            "max_size": 1020,
-            "type": "VarString"
-          }
+          "type_info": "Text"
         },
         {
           "name": "name",
           "ordinal": 1,
-          "type_info": {
-            "char_set": 224,
-            "flags": {
-              "bits": 4101
-            },
-            "max_size": 1020,
-            "type": "VarString"
-          }
+          "type_info": "Text"
         },
         {
           "name": "password_hash",
           "ordinal": 2,
-          "type_info": {
-            "char_set": 224,
-            "flags": {
-              "bits": 4113
-            },
-            "max_size": 262140,
-            "type": "Blob"
-          }
+          "type_info": "Text"
         },
         {
           "name": "refresh_token_hash",
           "ordinal": 3,
-          "type_info": {
-            "char_set": 224,
-            "flags": {
-              "bits": 16
-            },
-            "max_size": 262140,
-            "type": "Blob"
-          }
+          "type_info": "Text"
         },
         {
           "name": "created_at",
           "ordinal": 4,
-          "type_info": {
-            "char_set": 63,
-            "flags": {
-              "bits": 4225
-            },
-            "max_size": 19,
-            "type": "Timestamp"
-          }
+          "type_info": "Timestamptz"
         },
         {
           "name": "updated_at",
           "ordinal": 5,
-          "type_info": {
-            "char_set": 63,
-            "flags": {
-              "bits": 4225
-            },
-            "max_size": 19,
-            "type": "Timestamp"
-          }
+          "type_info": "Timestamptz"
         }
       ],
       "nullable": [
@@ -95,85 +43,45 @@
         false
       ],
       "parameters": {
-        "Right": 1
+        "Left": [
+          "Text"
+        ]
       }
     },
-    "query": "\nselect * from users\nwhere name = ?\n            "
+    "query": "\nselect * from users\nwhere name = $1\n            "
   },
-  "4d5cc8e069e2df3403caf640677790419964bd08ba73a6399761aa2f5db760b5": {
+  "0c84ea19c54ab9dcede42295e9b698be6b929cdcfd84afdbb99b386ce6c6994c": {
     "describe": {
       "columns": [
         {
           "name": "id",
           "ordinal": 0,
-          "type_info": {
-            "char_set": 224,
-            "flags": {
-              "bits": 4099
-            },
-            "max_size": 1020,
-            "type": "VarString"
-          }
+          "type_info": "Text"
         },
         {
           "name": "name",
           "ordinal": 1,
-          "type_info": {
-            "char_set": 224,
-            "flags": {
-              "bits": 4101
-            },
-            "max_size": 1020,
-            "type": "VarString"
-          }
+          "type_info": "Text"
         },
         {
           "name": "password_hash",
           "ordinal": 2,
-          "type_info": {
-            "char_set": 224,
-            "flags": {
-              "bits": 4113
-            },
-            "max_size": 262140,
-            "type": "Blob"
-          }
+          "type_info": "Text"
         },
         {
           "name": "refresh_token_hash",
           "ordinal": 3,
-          "type_info": {
-            "char_set": 224,
-            "flags": {
-              "bits": 16
-            },
-            "max_size": 262140,
-            "type": "Blob"
-          }
+          "type_info": "Text"
         },
         {
           "name": "created_at",
           "ordinal": 4,
-          "type_info": {
-            "char_set": 63,
-            "flags": {
-              "bits": 4225
-            },
-            "max_size": 19,
-            "type": "Timestamp"
-          }
+          "type_info": "Timestamptz"
         },
         {
           "name": "updated_at",
           "ordinal": 5,
-          "type_info": {
-            "char_set": 63,
-            "flags": {
-              "bits": 4225
-            },
-            "max_size": 19,
-            "type": "Timestamp"
-          }
+          "type_info": "Timestamptz"
         }
       ],
       "nullable": [
@@ -185,29 +93,40 @@
         false
       ],
       "parameters": {
-        "Right": 1
+        "Left": [
+          "Text"
+        ]
       }
     },
-    "query": "\nselect * from users\nwhere id = ?\n            "
+    "query": "\nselect * from users\nwhere id = $1\n            "
   },
-  "51c06f10c618065e93a41ea12642cb28a985c95842b3ab60ecf11afa375c9f40": {
+  "88a9a6b00a39c2a64d51e944283b082dbabb46cb40fb2941f9b802de674ac3ef": {
     "describe": {
       "columns": [],
       "nullable": [],
       "parameters": {
-        "Right": 6
+        "Left": [
+          "Text"
+        ]
       }
     },
-    "query": "\nupdate users\nset name = ?, password_hash = ?, refresh_token_hash = ?, created_at = ?, updated_at = ?\nwhere id = ?\n                    "
+    "query": "\ndelete from users\nwhere id = $1\n            "
   },
-  "e6eb3d6a41aa24b6768ea6fb3c8d3afe30568ffc032f244cb8bff3def29c0820": {
+  "ffd6694d907baad8310735b5304cc35627f8fb75056365d9293b6fd7f79564bd": {
     "describe": {
       "columns": [],
       "nullable": [],
       "parameters": {
-        "Right": 1
+        "Left": [
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          "Timestamptz",
+          "Timestamptz"
+        ]
       }
     },
-    "query": "\ndelete from users\nwhere id = ?\n            "
+    "query": "\ninsert into users (id, name, password_hash, refresh_token_hash, created_at, updated_at)\nvalues ($1, $2, $3, $4, $5, $6)\non conflict (id)\ndo update\nset name = $2, password_hash = $3, refresh_token_hash = $4, created_at = $5, updated_at = $6\n            "
   }
 }
