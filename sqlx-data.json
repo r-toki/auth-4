@@ -1,5 +1,15 @@
 {
   "db": "MySQL",
+  "2548d0626553fd2f45aa95f18c9a62d7a31993ad88148d90687d7f35f58c2fb3": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Right": 6
+      }
+    },
+    "query": "\ninsert into users (id, name, password_hash, refresh_token_hash, created_at, updated_at)\nvalues (?, ?, ?, ?, ?, ?)\n                    "
+  },
   "36e2e7593540cb916d406b3fac83dece763cfb932572d39f8dfc86c3404199d6": {
     "describe": {
       "columns": [
@@ -180,6 +190,16 @@
     },
     "query": "\nselect * from users\nwhere id = ?\n            "
   },
+  "51c06f10c618065e93a41ea12642cb28a985c95842b3ab60ecf11afa375c9f40": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Right": 6
+      }
+    },
+    "query": "\nupdate users\nset name = ?, password_hash = ?, refresh_token_hash = ?, created_at = ?, updated_at = ?\nwhere id = ?\n                    "
+  },
   "e6eb3d6a41aa24b6768ea6fb3c8d3afe30568ffc032f244cb8bff3def29c0820": {
     "describe": {
       "columns": [],
@@ -189,15 +209,5 @@
       }
     },
     "query": "\ndelete from users\nwhere id = ?\n            "
-  },
-  "ea1417fbe0b6f9645773813c086577d35b81f6fc3ae2cacede67def4dc8d31bb": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Right": 6
-      }
-    },
-    "query": "\ninsert into users (id, name, password_hash, refresh_token_hash, created_at, updated_at)\nvalues (?, ?, ?, ?, ?, ?)\non duplicate key\nupdate\nname = values(name),\npassword_hash = values(password_hash), refresh_token_hash = values(refresh_token_hash),\ncreated_at = values(created_at), updated_at = values(updated_at)\n            "
   }
 }

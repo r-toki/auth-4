@@ -10,7 +10,7 @@ use derive_new::new;
 use lazy_static::lazy_static;
 use regex::Regex;
 use serde_json::json;
-use sqlx::{query, query_as, MySqlExecutor};
+use sqlx::{query, query_as, MySqlExecutor, MySqlPool};
 use validator::Validate;
 
 lazy_static! {
@@ -77,7 +77,7 @@ impl User {
             .map_err(Into::into)
     }
 
-    pub async fn find(executor: impl MySqlExecutor<'_>, id: String) -> MyResult<User> {
+    pub async fn find(pool: &MySqlPool, id: String) -> MyResult<User> {
         query_as!(
             User,
             r#"
@@ -86,7 +86,7 @@ where id = ?
             "#,
             id
         )
-        .fetch_one(executor)
+        .fetch_one(pool)
         .await
         .map_err(Into::into)
     }
@@ -108,7 +108,7 @@ where name = ?
         .map_err(Into::into)
     }
 
-    pub async fn delete_by_id(executor: impl MySqlExecutor<'_>, id: String) -> MyResult<()> {
+    pub async fn delete_by_id(pool: &MySqlPool, id: String) -> MyResult<()> {
         query!(
             r#"
 delete from users
@@ -116,48 +116,63 @@ where id = ?
             "#,
             id
         )
-        .execute(executor)
+        .execute(pool)
         .await
         .map(|_| ())
         .map_err(Into::into)
     }
 
-    pub async fn store(&self, executor: impl MySqlExecutor<'_>) -> MyResult<()> {
-        query!(
-            r#"
-insert into users (id, name, password_hash, refresh_token_hash, created_at, updated_at)
-values (?, ?, ?, ?, ?, ?)
-on duplicate key
-update
-name = values(name),
-password_hash = values(password_hash), refresh_token_hash = values(refresh_token_hash),
-created_at = values(created_at), updated_at = values(updated_at)
-            "#,
-            self.id,
-            self.name,
-            self.password_hash,
-            self.refresh_token_hash,
-            self.created_at,
-            self.updated_at
-        )
-        .execute(executor)
-        .await
-        .map(|_| ())
-        .map_err(Into::into)
-    }
+    pub async fn store(&self, pool: &MySqlPool) -> MyResult<()> {
+        let mut tx = pool.begin().await?;
 
-    #[allow(dead_code)]
-    pub async fn delete(&self, executor: impl MySqlExecutor<'_>) -> MyResult<()> {
-        query!(
+        let exists = query!(
             r#"
-delete from users
+select * from users
 where id = ?
             "#,
             self.id
         )
-        .execute(executor)
-        .await
-        .map(|_| ())
-        .map_err(Into::into)
+        .fetch_optional(&mut tx)
+        .await?;
+
+        match exists {
+            Some(_) => {
+                query!(
+                    r#"
+update users
+set name = ?, password_hash = ?, refresh_token_hash = ?, created_at = ?, updated_at = ?
+where id = ?
+                    "#,
+                    self.name,
+                    self.password_hash,
+                    self.refresh_token_hash,
+                    self.created_at,
+                    self.updated_at,
+                    self.id
+                )
+                .execute(&mut tx)
+                .await?;
+            }
+            None => {
+                query!(
+                    r#"
+insert into users (id, name, password_hash, refresh_token_hash, created_at, updated_at)
+values (?, ?, ?, ?, ?, ?)
+                    "#,
+                    self.id,
+                    self.name,
+                    self.password_hash,
+                    self.refresh_token_hash,
+                    self.created_at,
+                    self.updated_at
+                )
+                .execute(&mut tx)
+                .await?;
+            }
+        };
+
+        tx.commit().await?;
+
+        Ok(())
     }
 }
