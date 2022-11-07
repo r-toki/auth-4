@@ -6,8 +6,6 @@ use actix_web::http;
 pub fn cors() -> Cors {
     Cors::default()
         .allowed_origin_fn(|origin, _req_head| {
-            println!("origin: {:?}", origin);
-            println!("frontend_origins: {:?}", CONFIG.frontend_origins);
             CONFIG
                 .frontend_origins
                 .contains(&origin.to_str().unwrap().into())
