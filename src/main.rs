@@ -20,8 +20,8 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(pool.clone()))
-            .wrap(Logger::default())
             .wrap(cors())
+            .wrap(Logger::default())
             .configure(controller::init)
             .service(index)
     })
