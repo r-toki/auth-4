@@ -7,6 +7,9 @@ use jsonwebtoken::{
 };
 use serde::{Deserialize, Serialize};
 
+const ACCESS_EXP_MINUTES: i64 = 0;
+const REFRESH_EXP_WEEKS: i64 = 2;
+
 #[derive(new, Debug, Serialize)]
 pub struct Auth {
     pub uid: String,
@@ -27,7 +30,7 @@ pub struct Tokens {
 }
 
 pub fn generate_tokens(auth: Auth) -> Tokens {
-    let access_exp = (Utc::now() + Duration::minutes(30)).timestamp();
+    let access_exp = (Utc::now() + Duration::minutes(ACCESS_EXP_MINUTES)).timestamp();
     let access_claims = Claims::new(auth.uid.clone(), access_exp, auth.uid.clone());
     let access_token = encode(
         &Header::default(),
@@ -36,7 +39,7 @@ pub fn generate_tokens(auth: Auth) -> Tokens {
     )
     .unwrap();
 
-    let refresh_exp = (Utc::now() + Duration::weeks(2)).timestamp();
+    let refresh_exp = (Utc::now() + Duration::weeks(REFRESH_EXP_WEEKS)).timestamp();
     let refresh_claims = Claims::new(auth.uid.clone(), refresh_exp, auth.uid.clone());
     let refresh_token = encode(
         &Header::default(),
