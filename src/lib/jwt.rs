@@ -7,7 +7,7 @@ use jsonwebtoken::{
 };
 use serde::{Deserialize, Serialize};
 
-const ACCESS_EXP_MINUTES: i64 = 0;
+const ACCESS_EXP_MINUTES: i64 = 30;
 const REFRESH_EXP_WEEKS: i64 = 2;
 
 #[derive(new, Debug, Serialize)]
