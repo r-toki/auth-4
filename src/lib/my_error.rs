@@ -42,7 +42,6 @@ impl ResponseError for MyError {
 impl From<ValidationErrors> for MyError {
     fn from(errors: ValidationErrors) -> Self {
         let mut err_map = JsonMap::new();
-
         for (field, field_errors) in errors.field_errors().iter() {
             let errors: Vec<JsonValue> = field_errors
                 .iter()
@@ -50,7 +49,6 @@ impl From<ValidationErrors> for MyError {
                 .collect();
             err_map.insert(field.to_string(), json!(errors));
         }
-
         MyError::UnprocessableEntity(err_map.into())
     }
 }
