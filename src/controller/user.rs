@@ -48,7 +48,7 @@ async fn destroy(
     access_token_decoded: AccessTokenDecoded,
 ) -> MyResult<Json<()>> {
     let auth = access_token_decoded.into_auth();
-    User::delete_by_id(&**pool, auth.uid).await?;
+    User::delete_by_id(&**pool, auth.id).await?;
     Ok(Json(()))
 }
 
@@ -76,7 +76,7 @@ async fn update_session(
     refresh_token_decoded: RefreshTokenDecoded,
 ) -> MyResult<Json<Tokens>> {
     let auth = refresh_token_decoded.into_auth();
-    let mut user = User::find(&**pool, auth.uid).await?;
+    let mut user = User::find(&**pool, auth.id).await?;
     user.verify_refresh_token(token.into())?;
     let tokens = user.issue_tokens();
     user.store(&**pool).await?;
@@ -89,7 +89,7 @@ async fn destroy_session(
     access_token_decoded: AccessTokenDecoded,
 ) -> MyResult<Json<()>> {
     let auth = access_token_decoded.into_auth();
-    let mut user = User::find(&**pool, auth.uid).await?;
+    let mut user = User::find(&**pool, auth.id).await?;
     user.revoke_tokens();
     user.store(&**pool).await?;
     Ok(Json(()))

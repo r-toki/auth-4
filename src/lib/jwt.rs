@@ -12,14 +12,16 @@ const REFRESH_EXP_WEEKS: i64 = 2;
 
 #[derive(new, Debug, Serialize)]
 pub struct Auth {
-    pub uid: String,
+    pub id: String,
+    pub name: String,
 }
 
 #[derive(new, Debug, Serialize, Deserialize)]
 pub struct Claims {
     pub sub: String,
     pub exp: i64,
-    pub uid: String,
+    pub id: String,
+    pub name: String,
 }
 
 #[derive(new, Debug, Serialize)]
@@ -31,7 +33,12 @@ pub struct Tokens {
 
 pub fn generate_tokens(auth: Auth) -> Tokens {
     let access_exp = (Utc::now() + Duration::minutes(ACCESS_EXP_MINUTES)).timestamp();
-    let access_claims = Claims::new(auth.uid.clone(), access_exp, auth.uid.clone());
+    let access_claims = Claims::new(
+        auth.id.clone(),
+        access_exp,
+        auth.id.clone(),
+        auth.name.clone(),
+    );
     let access_token = encode(
         &Header::default(),
         &access_claims,
@@ -40,7 +47,12 @@ pub fn generate_tokens(auth: Auth) -> Tokens {
     .unwrap();
 
     let refresh_exp = (Utc::now() + Duration::weeks(REFRESH_EXP_WEEKS)).timestamp();
-    let refresh_claims = Claims::new(auth.uid.clone(), refresh_exp, auth.uid.clone());
+    let refresh_claims = Claims::new(
+        auth.id.clone(),
+        refresh_exp,
+        auth.id.clone(),
+        auth.name.clone(),
+    );
     let refresh_token = encode(
         &Header::default(),
         &refresh_claims,

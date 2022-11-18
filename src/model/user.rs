@@ -50,7 +50,7 @@ impl User {
     }
 
     pub fn issue_tokens(&mut self) -> Tokens {
-        let tokens = generate_tokens(Auth::new(self.id.clone()));
+        let tokens = generate_tokens(Auth::new(self.id.clone(), self.name.clone()));
 
         self.refresh_token_hash = Some(hash(&tokens.refresh_token));
         self.updated_at = get_current_date_time();
