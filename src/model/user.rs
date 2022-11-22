@@ -9,7 +9,6 @@ use chrono::{DateTime, Utc};
 use derive_new::new;
 use lazy_static::lazy_static;
 use regex::Regex;
-use serde_json::json;
 use sqlx::{query, query_as, PgPool};
 use validator::Validate;
 
@@ -36,7 +35,7 @@ impl User {
     pub fn create(name: String, password: String) -> MyResult<Self> {
         if !RE_PASSWORD.is_match(&password) {
             return Err(MyError::UnprocessableEntity(
-                json!({"password": ["must be 8-30 characters in alphabet, numbers or symbols"]}),
+                "password must be 8-30 characters in alphabet, numbers or symbols".into(),
             ));
         };
 
@@ -65,12 +64,12 @@ impl User {
 
     pub fn verify_password(&self, password: String) -> MyResult<()> {
         verify(&password, &self.password_hash)
-            .map_err(|_| MyError::Unauthorized("Name and password do not match".into()))
+            .map_err(|_| MyError::Unauthorized("name and password do not match".into()))
             .map_err(Into::into)
     }
 
     pub fn verify_refresh_token(&self, refresh_token: String) -> MyResult<()> {
-        let err = || MyError::Unauthorized("Refresh token do not match".into());
+        let err = || MyError::Unauthorized("refresh token do not match".into());
         let refresh_token_hash = self.refresh_token_hash.as_ref().ok_or_else(|| err())?;
         verify(&refresh_token, refresh_token_hash)
             .map_err(|_| err())
